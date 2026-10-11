@@ -1,0 +1,3955 @@
+{
+  "name": "TOMATOAI",
+  "nodes": [
+    {
+      "parameters": {
+        "topics": "garden/tomato/data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mqttTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3936,
+        5520
+      ],
+      "id": "d1d2c05f-e8d8-4344-bce6-db77557be532",
+      "name": "MQTT Trigger",
+      "credentials": {
+        "mqtt": {
+          "id": "mqtt_account_id",
+          "name": "MQTT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3264,
+        5696
+      ],
+      "id": "d168acb4-c68b-41dd-ae61-907152c476e2",
+      "name": "Groq Chat Model",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawData = $input.first().json;\nlet payload = rawData;\n\n// Kiểm tra xem dữ liệu có bị bọc trong trường \"message\" của MQTT không\nif (rawData.message) {\n  // Nếu message đang là chuỗi Text (String), ta ép nó thành dạng JSON (Object)\n  if (typeof rawData.message === 'string') {\n    payload = JSON.parse(rawData.message);\n  } else {\n    payload = rawData.message;\n  }\n}\n\n// Lúc này payload đã là một Object chuẩn: {\"time\": \"...\", \"gh_temp\": ...}\nconst timeString = payload.time;\n\n// Cắt lấy phần ngày (10 ký tự đầu tiên: YYYY-MM-DD)\nconst created_date = timeString.substring(0, 10);\n\n// Tạo các trường mới theo đúng format database của bạn\npayload.created = timeString;\npayload.created_date = created_date;\n\nreturn [{ json: payload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3712,
+        5520
+      ],
+      "id": "6fc014b3-5262-4119-8204-9455557d32e2",
+      "name": "Pre-processing data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_SENSOR_DATA_ID",
+          "mode": "list",
+          "cachedResultName": "Greenhouse_TOMATOAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_SENSOR_DATA_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_SENSOR_DATA_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created": "={{ $json.created }}",
+            "created_date": "={{ $json.created_date }}",
+            "gh_temp": "={{ $json.gh_temp }}",
+            "gh_hum": "={{ $json.gh_hum }}",
+            "gh_lux": "={{ $json.gh_lux }}",
+            "out_temp": "={{ $json.out_temp }}",
+            "out_hum": "={{ $json.out_hum }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created",
+              "displayName": "created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_date",
+              "displayName": "created_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gh_temp",
+              "displayName": "gh_temp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gh_hum",
+              "displayName": "gh_hum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gh_lux",
+              "displayName": "gh_lux",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "out_temp",
+              "displayName": "out_temp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "out_hum",
+              "displayName": "out_hum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "note",
+              "displayName": "note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3488,
+        5520
+      ],
+      "id": "e7b4a91f-2062-404f-bd1b-8143fb62cec3",
+      "name": "Save data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an Environmental AI agent for a smart tomato greenhouse. Your job is to analyze real-time sensor data and determine whether the situation is CRITICAL or NORMAL.\n\nGreenhouse optimal ranges for tomatoes:\n\nTemperature: 18–30°C (optimal 24°C)\n\nHumidity: 60–80% (optimal 70%)\n\nIlluminance: must be > 0 during daytime (06:00 - 18:00)\n\nCO2 (if available): 400–1200 ppm (optimal 800 ppm)\n\nExtreme risk thresholds:\n\nTemperature > 35°C or < 10°C = CRITICAL\n\nHumidity < 40% or > 90% = CRITICAL\n\nCO2 outside 350–1500 ppm = CRITICAL\n\nRules:\n\nIf any extreme threshold is violated → status = \"critical\"\n\nIf multiple parameters deviate strongly from optimal range → status = \"critical\"\n\nOtherwise → status = \"normal\"\n\nCompute a risk_score from 0 (perfectly optimal) to 1 (extremely dangerous).\n\nReturn ONLY valid JSON in this exact format:\n\nJSON\n{\n  \"status\": \"critical\" or \"normal\",\n  \"risk_score\": number,\n  \"severity\": \"none\" | \"medium\" | \"high\",\n  \"reason\": \"Giải thích ngắn gọn bằng tiếng Việt\",\n  \"recommended_action\": \"Hành động cụ thể bằng tiếng Việt hoặc None\"\n}\nAnalyze the following sensor data:\n\nJSON\n{\n  \"gh_temp\": {{ $json.gh_temp }},\n  \"gh_hum\": {{ $json.gh_hum }},\n  \"gh_lux\": {{ $json.gh_lux }},\n  \"out_temp\": {{ $json.out_temp }},\n  \"out_hum\": {{ $json.out_hum }},\n  \"created\": \"{{ $json.created }}\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3264,
+        5520
+      ],
+      "id": "c9fc1762-0323-4079-97c2-fb7abd55adf9",
+      "name": "Environmental AI agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "07d9879f-2f67-4639-9895-14b05aa79f56",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "critical",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "8ec3fcf9-debb-4bb0-933f-a576a46785b6",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "medium",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2688,
+        5520
+      ],
+      "id": "6d314cbc-64de-48be-a324-01ea3fbcce62",
+      "name": "Check condition"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_ALERT_CHAT_ID",
+        "text": "=🚨 GREENHOUSE CRITICAL ALERT\n\nSeverity: {{$json.severity.toUpperCase()}}\nRisk Score: {{$json.risk_score}}\n\nIssue:\n{{$json.reason.replace(/</g, \"less than \").replace(/>/g, \"greater than \")}}\n\nRecommended Action:\n{{$json.recommended_action}}\n\nImmediate attention required.\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2464,
+        5520
+      ],
+      "id": "1dc1b99d-d33f-4a88-8ca1-44116ccc2244",
+      "name": "Send Alert",
+      "webhookId": "b7418709-76e2-4c78-bfd7-130e656192b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lấy nội dung văn bản từ AI Agent (Groq)\nconst aiOutput = $input.first().json.output;\n\ntry {\n  // Tìm kiếm đoạn JSON trong văn bản bằng Regex\n  const jsonMatch = aiOutput.match(/\\{[\\s\\S]*\\}/);\n  \n  if (!jsonMatch) {\n    throw new Error(\"Không tìm thấy dữ liệu JSON trong phản hồi của AI.\");\n  }\n\n  // Chuyển đổi chuỗi thành Object JSON\n  const result = JSON.parse(jsonMatch[0]);\n\n  // Trả về dữ liệu đã parse kèm theo dữ liệu gốc (nếu cần dùng tiếp)\n  return [{\n    json: {\n      ...result,\n      original_data: $input.first().json\n    }\n  }];\n} catch (error) {\n  // Trường hợp AI trả về format lỗi\n  return [{\n    json: {\n      status: \"error\",\n      reason: \"AI output parsing failed\",\n      raw_output: aiOutput\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2912,
+        5520
+      ],
+      "id": "b488dc8f-214c-4eab-afe1-f2679b6dccf9",
+      "name": "Parse result"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -4960,
+        2272
+      ],
+      "id": "301fd2ec-455f-4b4d-bf0a-2e1f8b60c498",
+      "name": "Telegram Trigger",
+      "webhookId": "de2b00c6-7978-4c51-888e-09298a55389c",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0c44a33c-4d12-40d9-b3fe-54a212cae591",
+                    "leftValue": "={{ !!$json.message.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "=/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "48b62f54-d9cc-4ffb-82a5-86275d3d74a3"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "90505b63-bf94-4d25-9b95-fc51b302fff0",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/about",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5db89a0e-3ea1-41d5-a27a-4d1275500e23",
+                    "leftValue": "={{ $json.message.reply_to_message?.text }}",
+                    "rightValue": "📍 Địa điểm trồng: [Ghi rõ Huyện/Tỉnh, ví dụ: An Nhơn, Bình Định]",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a6dea281-6aca-41dd-a586-9c51fb73b849",
+                    "leftValue": "={{ $json.message.reply_to_message?.text }}",
+                    "rightValue": "Trợ lý AI thông minh đồng hành cùng bà con nhà nông",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2e089100-5313-4635-87be-9025db24aa7a",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/chat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "aa0fb433-47e1-4adf-9d0b-ddcc472f80bb",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "834816a6-381f-4b06-9b63-a68e90974350",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/ripeness",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5dbde681-8ee3-4e36-8e69-b5ef4271ff06",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/disease",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3d0c1b83-0c09-46ff-994f-1208fa7ea3a7",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/export",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "61779543-cafd-4332-ab88-fbcb8ee1932f",
+                    "leftValue": "={{ $json.message?.photo ? true : false }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ad70bde5-5620-4a14-86a7-f54a4bed0f0c",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/sensor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2b7d5c09-bd46-47bb-92ee-d7fe6726b56b",
+                    "leftValue": "={{ $json.message.reply_to_message?.text }}",
+                    "rightValue": "CỔNG KHAI BÁO & TRUY XUẤT LÔ HÀNG XUẤT KHO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "491f4edd-9a52-4506-a02a-a5d88a561ab6",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/price",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "94ff4328-7c2c-4158-aa37-1375396a3e30",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/news",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "22e47404-1774-467c-bc05-fcfe7fd386dc",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -4672,
+        2064
+      ],
+      "id": "a859f6a3-56f9-425d-8721-5cc628af5537",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Xin chào! 👋 Hiện tại **TOMATOAI** được thiết kế để hỗ trợ bạn nhanh chóng và chính xác nhất thông qua các **lệnh (commands)**. \n\nHiện tại chúng mình chưa đủ thông minh để có thể hiểu tất cả những gì bạn muốn.\n\nĐể tôi có thể giúp bạn, vui lòng bấm vào một trong các lệnh dưới đây:\n\n👉 **/start** — Xem danh sách các tính năng và công cụ hỗ trợ trồng cà chua.\n👉 **/about** — Tìm hiểu thêm thông tin về dịch vụ của TOMATOAI.\n\n💡 *Mẹo: Bạn có thể gõ dấu `/` vào khung chat bất cứ lúc nào để gọi bảng menu lệnh lên nhé!*",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4960,
+        2448
+      ],
+      "id": "4c1e4faf-e39e-41db-8ea3-899567df4e3f",
+      "name": "Send a text message6",
+      "webhookId": "545e767b-1bca-47c3-8733-e6dacff770cb",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_CONFIG_ID",
+          "mode": "list",
+          "cachedResultName": "Bot_Memory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CONFIG_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CONFIG_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Chat_ID": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+            "Trang_Thai": "={{ $json.message.text }}"
+          },
+          "matchingColumns": [
+            "Chat_ID"
+          ],
+          "schema": [
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Trang_Thai",
+              "displayName": "Trang_Thai",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3552,
+        2784
+      ],
+      "id": "33d3b8b4-4c90-4c4d-bb78-6723695900ab",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_CONFIG_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CONFIG_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3952,
+        3232
+      ],
+      "id": "361eb319-3f06-41f8-a3c8-f16712d013dc",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Trang_Thai }}",
+                    "rightValue": "/disease",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f0684551-8115-4dc3-9f37-8760c5389f65"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9de273a8-c9da-4e2c-b768-e81f66006598",
+                    "leftValue": "={{ $json.Trang_Thai }}",
+                    "rightValue": "/ripeness",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -3728,
+        3232
+      ],
+      "id": "daa39252-b87a-4670-9dae-f0bf62e06413",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vanle02-tomatoai-leaf-disease.hf.space/predict",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -3056,
+        3088
+      ],
+      "id": "af3beb9a-dcc3-4880-be05-46a4f153c746",
+      "name": "HTTP Request4",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "notesInFlow": false,
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.photo.reverse()[0].file_id }}",
+        "download": false
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3504,
+        3088
+      ],
+      "id": "5dcb72cb-f5f2-4206-9bb1-22c1bc65dd7c",
+      "name": "Get a file",
+      "webhookId": "541ea80a-ae47-4fbd-9dfb-3c498a851535",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/botYOUR_TELEGRAM_BOT_TOKEN/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -3280,
+        3088
+      ],
+      "id": "fcf09c95-d0cd-481a-a3f1-4ff6de07a7bf",
+      "name": "Downloadfile"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vanle02-tomatoai-n8n.hf.space/predict",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3248,
+        3376
+      ],
+      "id": "be93e83c-dbec-4cd1-9735-e2c836661653",
+      "name": "HTTP Request5",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.photo.reverse()[0].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3504,
+        3376
+      ],
+      "id": "db61cb0f-0817-4a53-a2ed-93874ccc76e4",
+      "name": "Get a file4",
+      "webhookId": "b8a5c868-90f7-4c66-82da-149ceba5e88a",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3488,
+        4080
+      ],
+      "id": "b1dccb51-815a-4ee0-b1d5-d00a59cbff09",
+      "name": "Groq Chat Model2",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_SENSOR_DATA_ID",
+          "mode": "list",
+          "cachedResultName": "Greenhouse_TOMATOAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_SENSOR_DATA_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_SENSOR_DATA_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "created_date",
+              "lookupValue": "={{ new Date().toISOString().slice(0,10) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3936,
+        3904
+      ],
+      "id": "5a9323bb-0c75-445d-a63e-d373ceb7e400",
+      "name": "Read data1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là chuyên gia phân tích dữ liệu môi trường nhà kính của TOMATOAI.\nNhiệm vụ của bạn là phân tích các chỉ số cảm biến trong ngày và viết một báo cáo ngắn gọn, dễ hiểu để gửi thẳng cho bà con nông dân.\n\nNGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ):\n- TRẢ LỜI 100% BẰNG TIẾNG VIỆT.\n- CHỈ TRẢ VỀ BÁO CÁO CUỐI CÙNG. Tuyệt đối KHÔNG in ra phần suy luận (Reasoning/Thinking) hay giải thích bằng tiếng Anh.\n- XƯNG HÔ: Gọi \"bà con\", \"nhà mình\" và xưng \"TOMATOAI\".\n- ĐỊNH DẠNG: KHÔNG dùng các ký tự markdown như #, >, **, __. Chỉ dùng văn bản thuần túy kết hợp với biểu tượng cảm xúc (emoji) cho đẹp mắt.\n\nDỮ LIỆU CẢM BIẾN HÔM NAY:\n{{ JSON.stringify($json) }}\n\nCẤU TRÚC BÁO CÁO BẮT BUỘC (Copy y nguyên các tiêu đề dưới đây):\n\n📊 BÁO CÁO MÔI TRƯỜNG NHÀ KÍNH HÔM NAY\n\n📝 TỔNG QUAN VƯỜN NHÀ:\n(Viết 1-2 câu đánh giá mức độ ổn định, rủi ro và sức khỏe tổng thể của vườn cà chua dựa trên dữ liệu)\n\n🔍 CHI TIẾT CHỈ SỐ:\n- (Ghi nhận hiện tượng bất thường 1)\n- (Ghi nhận hiện tượng bất thường 2)\n- (Ghi nhận hiện tượng bất thường 3)\n\n💡 LỜI KHUYÊN TỪ TOMATOAI:\n- (Đề xuất hành động khắc phục 1)\n- (Đề xuất hành động khắc phục 2)",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3488,
+        3904
+      ],
+      "id": "3ffd202b-e032-442c-9636-24e28f3c468e",
+      "name": "Environmental AI analyst1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      report: $input.first().json.output\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3136,
+        3904
+      ],
+      "id": "534bf0a8-f838-4e0f-98a1-89f4a740f11a",
+      "name": "Parse output1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/export",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3d67ddc9-a82c-4ada-89d9-fe153b773825"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fcbb62ee-a0ef-4014-91a1-efbb28e6e6ae",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d9815e0b-5abc-4ca4-a1ae-89841ec17b74",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/export",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -4000,
+        2272
+      ],
+      "id": "bc480569-24c8-49e1-8a16-85448c47cc0c",
+      "name": "Switch4"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3280,
+        4912
+      ],
+      "id": "c2fd0a21-b81c-42f7-bad4-3530ccd87326",
+      "name": "Groq Chat Model5",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là chuyên gia tư vấn thị trường của TOMATOAI. Nhiệm vụ của bạn là viết một bản tin nông nghiệp HOÀN CHỈNH để gửi thẳng cho bà con nông dân.\n\nNGUYÊN TẮC CỐT LÕI:\n\nĐọc, lưu context của người dùng và phải trả lời phù hợp với context đó. Với context như sau\n{{ $json.config }}\n\nKHÔNG được liệt kê kiểu \"Nếu giá tăng... Nếu giá giảm...\". Hãy đọc dữ liệu và viết duy nhất một kịch bản đang diễn ra.\n\nKHÔNG sử dụng các ký tự: #, >, **, __.\n\nXƯNG HÔ: Gọi \"Bà con\", \"Nhà mình\" và xưng \"TOMATOAI\".\n\nPHONG CÁCH: Chân thành, như một người con trong gia đình đang báo tin cho cha mẹ.\n\nDỮ LIỆU THỰC TẾ:\n\nNgày: {{ $json.date }}\n\nGiá: {{ $json.price_vnd }} VNĐ/kg\n\nBiến động: {{ $json.percent_change }}% (Số dương là tăng, số âm là giảm)\n\nCảnh báo: {{ $json.is_alert }}\n\nLOGIC XỬ LÝ BIẾN ĐỘNG:\n\nNếu percent_change > 0: Chúc mừng bà con vì giá khởi sắc.\n\nNếu percent_change < 0 và is_alert là true: Đây là lúc quan trọng nhất. Hãy khuyên bà con thật chân thành: \"Bà con mình ơi, đừng quá lo lắng mà bán tháo. Hãy kiểm tra độ chín của cà chua tại vườn, nếu trái còn xanh hoặc vừa chín tới thì hãy khoan thu hoạch, giãn tiến độ ra vài ngày để đợi giá ổn định lại nhé\".\n\nNếu giá đi ngang: Khuyên bà con tập trung chăm sóc cây.\n\nCẤU TRÚC BẢN TIN:\n🍅 TIÊU ĐỀ (Có emoji, thu hút)\n💰 THÔNG TIN GIÁ (Ghi rõ giá và mức tăng/giảm cụ thể)\n📝 PHÂN TÍCH (Giải thích ngắn gọn tại sao giá như vậy bằng ngôn ngữ bình dân)\n💡 LỜI KHUYÊN (Hành động cụ thể cho vườn nhà)\n🤝 LỜI KẾT (Chân thành)",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3280,
+        4752
+      ],
+      "id": "bbd35667-770c-4124-9e59-7cc307d233ef",
+      "name": "Environmental AI agent4"
+    },
+    {
+      "parameters": {
+        "url": "https://vanle02-price-news-crawler.hf.space/price",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3728,
+        4752
+      ],
+      "id": "bf88d727-9582-47bb-9407-0254120c23f1",
+      "name": "HTTP Request6",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_DAILY_REPORT_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_DAILY_REPORT_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Mã Lô Hàng": "={{ $json.BatchID }}",
+            "Thời Gian Xuất": "={{ $json.ThoiGian }}",
+            "Tên Sản Phẩm": "={{ $json.SanPham }}",
+            "Tiêu Chuẩn": "={{ $json.TieuChuan }}",
+            "Quy Cách Đóng Gói": "={{ $json.DongGoi }}",
+            "Số Lượng": "={{ $json.SoLuong }}",
+            "Vận Chuyển": "={{ $json.VanChuyen }}",
+            "Trạng Thái": "={{ $json.Status }}",
+            "Link Mã QR": "={{ $json.Link_QR }}",
+            "Telegram ID": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Mã Lô Hàng",
+              "displayName": "Mã Lô Hàng",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Thời Gian Xuất",
+              "displayName": "Thời Gian Xuất",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tên Sản Phẩm",
+              "displayName": "Tên Sản Phẩm",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tiêu Chuẩn",
+              "displayName": "Tiêu Chuẩn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quy Cách Đóng Gói",
+              "displayName": "Quy Cách Đóng Gói",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Số Lượng",
+              "displayName": "Số Lượng",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Vận Chuyển",
+              "displayName": "Vận Chuyển",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Trạng Thái",
+              "displayName": "Trạng Thái",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Link Mã QR",
+              "displayName": "Link Mã QR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Telegram ID",
+              "displayName": "Telegram ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3424,
+        4272
+      ],
+      "id": "4990f822-be27-46f9-8609-8faff2e9bb05",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Lấy nội dung tin nhắn người dùng vừa gõ trả lời\nconst text = $json.message?.text || \"\";\nconst chat_id = $json.message?.chat?.id;\n\n// Loại bỏ icon \"📤\" ở đầu chuỗi (nếu người dùng lỡ copy vào) và xóa khoảng trắng\nconst cleanText = text.replace('📤', '').trim();\n\n// 2. Cắt tin nhắn ra bằng dấu phẩy \",\" và xóa khoảng trắng thừa ở các phần tử\nconst parts = cleanText.split(',').map(item => item.trim());\n\n// 3. Kiểm tra xem có đủ ít nhất 5 phần không (SP, Tiêu chuẩn, Đóng gói, SL, Vận chuyển)\nif (parts.length >= 5) {\n  // Tự tạo mã Lô chuyên nghiệp (Ví dụ: LOT-260306-1234)\n  const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // Lấy định dạng YYMMDD\n  const randomStr = Math.floor(1000 + Math.random() * 9000); // 4 số ngẫu nhiên\n  const batchId = `LOT-${dateStr}-${randomStr}`;\n  \n  // Lấy giờ Việt Nam\n  const thoigian = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });\n  \n  // Gán 5 biến theo đúng thứ tự\n  const sanpham = parts[0];     // VD: \"Cà chua Beef\"\n  const tieuchuan = parts[1];   // VD: \"VietGAP\"\n  const donggoi = parts[2];     // VD: \"Thùng giấy sáp 10kg\"\n  const soluong = parts[3];     // VD: \"2 tấn\"\n  const vanchuyen = parts[4];   // VD: \"Xe tải 61C-123.45\"\n  \n  // Định dạng dữ liệu nhúng vào QR Code (Dùng \\n để xuống dòng cho đẹp khi quét)\n  const qrRawData = `Mã lô: ${batchId}\\nSản phẩm: ${sanpham}\\nTiêu chuẩn: ${tieuchuan}\\nĐóng gói: ${donggoi}\\nSố lượng: ${soluong}\\nVận chuyển: ${vanchuyen}\\nNgày xuất: ${thoigian}`;\n  \n  // Mã hóa URL và tạo link ảnh QR Code\n  const qrData = encodeURIComponent(qrRawData);\n  const linkqr = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${qrData}`;\n\n  return { \n      IsValid: true,\n      ChatID: chat_id,\n      BatchID: batchId,\n      SanPham: sanpham,\n      TieuChuan: tieuchuan,\n      DongGoi: donggoi,\n      SoLuong: soluong,\n      VanChuyen: vanchuyen,\n      ThoiGian: thoigian,\n      Link_QR: linkqr,\n      Status: \"Pending\"\n  };\n} else {\n  // Trả về lỗi nếu nhập thiếu dấu phẩy hoặc không đủ 5 trường\n  return {\n      IsValid: false,\n      ChatID: chat_id,\n      Message: \"⚠️ Sai cú pháp! Vui lòng nhập đủ 5 thông tin ngăn cách bằng dấu phẩy.\\n\\n👉 *Ví dụ đúng:*\\n`Cà chua Beef, VietGAP, Thùng giấy sáp 10kg, 2 tấn, Xe tải 61C-123.45`\"\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3920,
+        4384
+      ],
+      "id": "4601f573-8613-4e38-a41a-b9419354b6e8",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "url": "https://vanle02-price-news-crawler.hf.space/news",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3936,
+        5168
+      ],
+      "id": "656be186-8ed3-47c8-8a30-a6ff50b886d9",
+      "name": "HTTP Request7",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3600,
+        5168
+      ],
+      "id": "f978cb15-1fbc-4d90-8067-b18fd0805087",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -4944,
+        3056
+      ],
+      "id": "3ea556b5-7f2e-492f-b34f-d02feec590eb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Lấy dữ liệu từ API trả về\nconst detections = items[0].json.detections;\nconst base64String = items[0].json.image_base64;\n\n// 2. Tạo nội dung tin nhắn báo cáo\nlet text = \"🍅 Kết quả kiểm tra cà chua:\\n\";\nif (detections && detections.length > 0) {\n  detections.forEach(item => {\n    text += `- Loại: ${item.label} (Độ tin cậy: ${item.confidence}%)\\n`;\n  });\n} else {\n  text += \"Không tìm thấy cà chua nào!\";\n}\n\n// 3. QUAN TRỌNG: Tạo Binary Data (File ảnh) để gửi Telegram\n// Thay vì chỉ trả về text, ta trả về cả file ảnh vào mục 'binary'\nreturn {\n  json: {\n    responseText: text\n  },\n  binary: {\n    data: {\n      data: base64String,\n      mimeType: 'image/jpeg',\n      fileName: 'result.jpg'\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2976,
+        3376
+      ],
+      "id": "b3b36f73-b5d1-4324-b27a-c1ad821de187",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là TOMATOAI, một kỹ sư nông nghiệp tận tâm và dạn dày kinh nghiệm, chuyên chẩn đoán và hướng dẫn điều trị bệnh trên cây cà chua.\nDựa vào dữ liệu quét từ mô hình AI thị giác máy tính dưới đây:\n- Nhãn bệnh (prediction): {{ $json.prediction }}\n- Độ tự tin (confidence): {{ $json.confidence }}\n\nNHIỆM VỤ CỦA BẠN:\n1. Tính tỷ lệ chính xác: Quy đổi `confidence` sang phần trăm tròn số (vd: 0.3844 -> \"38%\").\n2. Chuyển đổi tên bệnh `prediction` từ tiếng Anh sang tiếng Việt. Nếu cây khỏe mạnh (healthy), hãy thông báo tin vui.\n3. Đọc, lưu context của người dùng và phải trả lời phù hợp với context đó. Với context như sau\n{{ $json.config }}\n4. Vận dụng kiến thức chuyên sâu để viết một bản phân tích và hướng dẫn điều trị thật chi tiết, có tâm, dễ hiểu cho bà con nông dân.\n\nNội dung phần hướng dẫn (biến de_xuat) CẦN BAO GỒM CÁC Ý CHÍNH SAU (Sử dụng chính xác các tiêu đề có icon dưới đây):\n🔍 Dấu hiệu nhận biết: (Mô tả ngắn gọn trên lá/thân/quả).\n🦠 Nguyên nhân chính: (Do nấm, vi khuẩn, thời tiết...).\n⚡ Các bước xử lý tức thời: (Nhổ bỏ, cách ly, giảm độ ẩm...).\n💊 Đề xuất thuốc bảo vệ: (Gợi ý hoạt chất phù hợp).\n🛡️ Lời khuyên phòng ngừa: (Chuẩn bị cho vụ sau).\n\nYÊU CẦU ĐỊNH DẠNG NGHIÊM NGẶT:\n- BẮT BUỘC sử dụng ký tự gạch đầu dòng (-) và xuống dòng (\\n) để liệt kê các ý chi tiết bên dưới mỗi tiêu đề.\n- TUYỆT ĐỐI KHÔNG sử dụng định dạng in đậm (KHÔNG dùng ký tự ** hoặc * trong toàn bộ văn bản).\n- TUYỆT ĐỐI KHÔNG in ra các mã code, tiêu đề lạ như \"de_xuat\" hay \"### de_xuat\".",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2384,
+        3088
+      ],
+      "id": "1f5f0282-e912-4bf4-88d0-b8c9ab1508b7",
+      "name": "Environmental AI analyst"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2384,
+        3264
+      ],
+      "id": "1feaa385-5d40-4113-80c6-c683213a530a",
+      "name": "Groq Chat Model4",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vanle02-tomatoai-leaf-disease.hf.space/predict",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -4720,
+        2768
+      ],
+      "id": "aa168c4c-6ad1-447f-8afe-ea0937ba943f",
+      "name": "HTTP Request",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "notesInFlow": false,
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://vanle02-tomatoai-n8n.hf.space/predict",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -4720,
+        3152
+      ],
+      "id": "8081b1be-3a13-4f70-951c-cbf5c6a2872e",
+      "name": "HTTP Request8",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://vanle02-price-news-crawler.hf.space/price",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -4720,
+        2960
+      ],
+      "id": "5098d12b-ad2e-4dbe-98f3-a83af23c7ff2",
+      "name": "HTTP Request9",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://vanle02-price-news-crawler.hf.space/news",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -4720,
+        3344
+      ],
+      "id": "864c8ceb-bb1f-495b-8cf2-3f638aa28eaa",
+      "name": "HTTP Request10",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "huggingface_account_id",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Xin chào! 👋 Tôi là **TOMATOAI** 🍅, trợ lý AI chuyên nghiệp đồng hành cùng bà con trong việc trồng, chăm sóc và kinh doanh cà chua. \n\nDưới đây là danh sách các lệnh để bà con có thể dễ dàng tương tác với tôi:\n\n⚙️ Thông tin vườn nhà\n▪️ /config - 🔧 Cài đặt thông tin mảnh vườn của bà con\n\n🌱 **CHĂM SÓC & THEO DÕI**\n▪️ /chat - 🔴 Hỏi mọi thứ về nông nghiệp và về và chua\n▪️ /ripeness - 🔴 Phân tích và đo lường độ chín của quả\n▪️ /disease - 🩺 Nhận diện bệnh hại thông qua hình ảnh\n▪️ /sensor - 🌡️ Trích xuất báo cáo thông số môi trường nhà kính (Nhiệt độ, độ ẩm, ánh sáng...)\n\n📈 **THỊ TRƯỜNG & VẬN HÀNH**\n▪️ /price - 💰 Cập nhật báo giá cà chua trên thị trường\n▪️ /news - 📰 Đọc tin tức nông nghiệp và kỹ thuật canh tác mới nhất\n▪️ /export - 📦 Tạo mã xuất kho và quản lý lô hàng nhanh chóng\n\n🎤 Ngoài ra bà con có thể gửi giọng nói trực tiếp để tôi có thể hỗ trợ bất cứ lúc nào.\n\n💡 *Mẹo: Bà con có thể nhấn trực tiếp vào các lệnh màu xanh ở trên hoặc gõ lệnh vào khung chat để bắt đầu nhé!*",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3904,
+        976
+      ],
+      "id": "35b6b19b-648c-44d6-9ca5-2458e1b6c588",
+      "name": "/start",
+      "webhookId": "545e767b-1bca-47c3-8733-e6dacff770cb",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Xin chào! 👋 Cảm ơn bạn đã quan tâm và sử dụng **TOMATOAI** 🍅.\n\nChúng tôi là một nhóm gồm 5 sinh viên đam mê công nghệ, hiện đang thực hiện đồ án cho môn học **Giải pháp AI**. Đội ngũ phát triển của chúng tôi bao gồm:\n🧑‍💻 **Gia Văn** (Team Lead)\n🧑‍💻 **Thư Mai**\n🧑‍💻 **Bá Trọng**\n🧑‍💻 **Hoàng Hiền**\n🧑‍💻 **Quỳnh Hương**\n\nĐồ án này được ra đời với tâm huyết mang ứng dụng của Trí tuệ Nhân tạo đến gần hơn với thực tiễn. Mục tiêu lớn nhất của chúng tôi là tạo ra một công cụ thiết thực, dễ sử dụng để hỗ trợ bà con nông dân theo dõi sát sao sức khỏe của vườn cà chua, tối ưu hóa quy trình chăm sóc, từ đó nâng cao năng suất và chất lượng nông sản.\n\nKính chúc bà con luôn có những vụ mùa bội thu, mưa thuận gió hòa, cây cà chua luôn trĩu quả và bán được giá cao! 🌱💰\n\nTrân trọng,\n**Gia Văn**",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3904,
+        1136
+      ],
+      "id": "d983ffe4-94c5-4806-8b75-818dbbb06fd8",
+      "name": "/about",
+      "webhookId": "545e767b-1bca-47c3-8733-e6dacff770cb",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=** Hãy gửi ảnh cho chúng mình nhé !!!**",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3328,
+        2784
+      ],
+      "id": "4debdf4b-2133-477c-85b3-de3277365883",
+      "name": "/ripeness /disease",
+      "webhookId": "545e767b-1bca-47c3-8733-e6dacff770cb",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2048,
+        3088
+      ],
+      "id": "aea2b125-4b03-4a97-ae3e-c36fa0415751",
+      "name": "/disease",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2624,
+        3376
+      ],
+      "id": "1e73db9f-a437-4e57-bb01-180f37884dc0",
+      "name": "/ripeness",
+      "webhookId": "ad130dfe-de6b-4f08-90b2-612ed9d0c512",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.report }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2912,
+        3904
+      ],
+      "id": "4dad0533-04be-4519-a810-86a97e62f11d",
+      "name": "Send Report",
+      "webhookId": "b7418709-76e2-4c78-bfd7-130e656192b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2928,
+        4752
+      ],
+      "id": "77f90333-9fdf-4c76-a479-2142bf19f16d",
+      "name": "/price",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=📰 **TIN TỨC THỊ TRƯỜNG MỚI**\n\n🔊 **Tiêu đề:** {{ $node[\"Split Out1\"].json.title }}\n\n💡 **Diễn biến chính:**\n{{ $json.summary }}\n\n🔗 **Xem chi tiết tại:** {{ $node[\"Split Out1\"].json.link }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "📖 Đọc chi tiết bài báo",
+                    "additionalFields": {
+                      "url": "={{ $node[\"Split Out1\"].json.link }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3264,
+        5168
+      ],
+      "id": "cfe236b6-8e9e-4895-8a75-cf4f8ce1d85c",
+      "name": "/news",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Giới thiệu & Cách sử dụng\n",
+        "height": 400,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "06efaddf-95fe-4110-9a87-1901ec7aff11",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Nhận diện hành ảnh (bệnh và độ chín cà chua)",
+        "height": 816,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        3008
+      ],
+      "typeVersion": 1,
+      "id": "55ca7643-e70b-49cc-9c5a-f0a70fc3bfbe",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Tổng hợp báo cáo Sensor Data trong ngày",
+        "height": 368,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        3840
+      ],
+      "typeVersion": 1,
+      "id": "a0d0e49f-6ef2-452f-a612-f6705e9d217e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lấy toàn bộ dữ liệu từ node 'Read data1'\nconst rows = $('Read data1').all().map(i => i.json);\n\n// Hàm tính trung bình (đã thêm tính năng làm tròn 2 chữ số thập phân cho gọn đẹp)\nfunction avg(arr, key) {\n  if (arr.length === 0) return 0; // Tránh lỗi chia cho 0 nếu không có dòng nào\n  const sum = arr.reduce((sum, r) => sum + Number(r[key] || 0), 0);\n  return Number((sum / arr.length).toFixed(2));\n}\n\n// Nếu không có dữ liệu trả về, báo đếm = 0\nif (rows.length === 0) {\n  return [{ json: { sample_count: 0, note: \"Không có dữ liệu\" } }];\n}\n\nreturn [\n  {\n    json: {\n      sample_count: rows.length,\n      \n      // Sửa lại key cho khớp đúng với JSON (gh_temp, gh_hum)\n      avg_temperature: avg(rows, \"gh_temp\"),\n      avg_humidity: avg(rows, \"gh_hum\"),\n      \n      // Vì dữ liệu không có CO2, tôi thay bằng trung bình ánh sáng (gh_lux)\n      avg_lux: avg(rows, \"gh_lux\"), \n      \n      // Lấy giá trị lớn nhất / nhỏ nhất\n      max_temperature: Math.max(...rows.map(r => Number(r.gh_temp))),\n      min_humidity: Math.min(...rows.map(r => Number(r.gh_hum)))\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3712,
+        3904
+      ],
+      "id": "91b693fc-0369-42de-8c0f-a5d9531b5a7b",
+      "name": "Data Aggregation1"
+    },
+    {
+      "parameters": {
+        "content": "## Gửi QR xuất kho",
+        "height": 448,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        4224
+      ],
+      "typeVersion": 1,
+      "id": "1e182649-af6c-4168-b75f-541799d4bd4b",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Nhận báo giá cà chua\n",
+        "height": 368,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        4688
+      ],
+      "typeVersion": 1,
+      "id": "36dc0ecb-753f-4491-ad79-e9a7bd8c8d25",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Đọc báo\n",
+        "height": 368,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        5072
+      ],
+      "typeVersion": 1,
+      "id": "26ae14bc-1a02-40e3-bc38-23733ebaffa8",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Fetching Sensor Data\n",
+        "height": 352,
+        "width": 2502
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        5456
+      ],
+      "typeVersion": 1,
+      "id": "f0c4e17b-fe3b-4ca5-a4c2-108a2e41b0d1",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Code logic xử lý\n",
+        "height": 832,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        2160
+      ],
+      "typeVersion": 1,
+      "id": "83611236-843c-4560-8bc9-7be023e2598f",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Starter",
+        "height": 736,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5040,
+        2000
+      ],
+      "typeVersion": 1,
+      "id": "5b2b407b-af85-47d4-ae7e-c68235d13568",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## Khởi động Hugging Face",
+        "height": 736,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5040,
+        2752
+      ],
+      "typeVersion": 1,
+      "id": "cd37cc25-15c3-4d53-8ee1-feebcf16b0bf",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## Chat với người dùng\n",
+        "height": 416,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        1728
+      ],
+      "typeVersion": 1,
+      "id": "f43ea4b6-f183-4ab9-98d7-3993dc13888f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=📦 **CỔNG KHAI BÁO & TRUY XUẤT LÔ HÀNG XUẤT KHO** 📦\n━━━━━━━━━━━━━━━━━━━━\n\nĐể hệ thống TOMATOAI tạo mã **QR Code** chuẩn xuất khẩu cho lô hàng, bà con vui lòng cung cấp thông tin theo thứ tự dưới đây:\n\n✍️ **Cú pháp (ngăn cách bằng dấu phẩy):**\n`Tên giống cà chua, Tiêu chuẩn canh tác, Quy cách đóng gói, Số lượng, Thông tin vận chuyển`\n\n💡 **Ví dụ (chạm vào để copy):**\n`Cà chua Beef, VietGAP, Thùng giấy sáp 10kg, 2 tấn, Xe tải 61C-123.45`\n\n*(Hệ thống sẽ tự động cấp Mã lô hàng và ghi nhận thời gian xuất kho theo thời gian thực).*",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3776,
+        2176
+      ],
+      "id": "f3c0d014-9a10-4594-8569-fd323be33983",
+      "name": "/export1",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c634ef05-63cd-4701-b192-2a7555f50d8c",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "=/chat",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3776,
+        2688
+      ],
+      "id": "09142f21-7d05-493b-9ffe-7d9391029ff4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Xin chào! 👋 Tôi là **TOMATOAI** 🍅 - Trợ lý AI thông minh đồng hành cùng bà con nhà nông.\n\nBạn đang có thắc mắc về vườn tược? Đừng ngần ngại! Hãy hỏi tôi **mọi thứ liên quan đến cây cà chua hoặc lĩnh vực nông nghiệp nói chung**, tôi luôn sẵn sàng hỗ trợ bạn:\n\n🌱 Tư vấn kỹ thuật gieo trồng, bón phân và chăm sóc.\n🩺 Bắt bệnh cây trồng và gợi ý hướng điều trị an toàn.\n💡 Cập nhật kiến thức và giải pháp nông nghiệp hiệu quả.\n\n👉 *Bạn đang gặp vấn đề gì? Hãy gõ câu hỏi chi tiết và gửi cho tôi ngay nhé!*",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3552,
+        2592
+      ],
+      "id": "6554160c-0f85-4267-8636-d65cc905fd8e",
+      "name": "/chat",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "file": "={{ $json['Link Mã QR'] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3200,
+        4272
+      ],
+      "id": "dc7a12b9-f34d-4746-a295-39ca5c813f3e",
+      "name": "/export",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Lấy nội dung tin nhắn người dùng vừa gõ trả lời\nconst text = $json.message?.text || \"\";\nconst chat_id = $json.message?.chat?.id;\nconst config = $json.config;\n\n// Loại bỏ icon \"📤\" ở đầu chuỗi và xóa khoảng trắng\nconst cleanText = text.replace('📤', '').trim();\n\n// 2. Tạo text_id tự động (Ví dụ: \"id_1715832000_a1b2\")\nconst text_id = `id_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;\n\nreturn { \n    IsValid: true,\n    ChatID: chat_id,\n    Chat: cleanText,\n    text_id: text_id, // Cột mới được thêm ở đây\n    config: config\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3968,
+        1824
+      ],
+      "id": "0074aaf5-4297-4110-b09a-904f2cb947be",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eae9064c-1238-4c57-ad5a-bf097dc39026",
+              "leftValue": "={{ $json.IsValid }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3696,
+        4384
+      ],
+      "id": "38377b28-4913-4f0e-b1ee-b45b6a38e874",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('Code in JavaScript5').item.json.Message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3424,
+        4464
+      ],
+      "id": "9ff366e1-cffc-4ed0-adef-c45134210665",
+      "name": "/export3",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là TOMATOAI, một trợ lý AI thông minh, nhiệt tình và gần gũi dành riêng cho bà con nông dân. Nhiệm vụ của bạn là hỗ trợ giải đáp các thắc mắc về nông nghiệp, chăm sóc cây trồng, sâu bệnh và kỹ thuật canh tác.\n\nKhi trả lời, bạn phải tuân thủ nghiêm ngặt các nguyên tắc sau:\n0. Đọc, lưu context của người dùng và phải trả lời phù hợp với context đó. Với context như sau\n{{ $json.config.config }}\n1. Xưng hô & Giọng điệu: Tự xưng là \"TOMATOAI\" và gọi người dùng là \"bà con\". Giọng điệu chân thành, tôn trọng, động viên và dễ hiểu.\n2. Định dạng văn bản: \n   - Trình bày câu trả lời rõ ràng, chia thành các đoạn hoặc ý ngắn gọn.\n   - Sử dụng các biểu tượng cảm xúc (emoji) phù hợp ngữ cảnh (như 🌱, 🍅, 💧, ☀️, 🚜) để đoạn chat sinh động và thân thiện.\n   - TUYỆT ĐỐI KHÔNG sử dụng các ký tự thừa, mã code rườm rà, hay các ký hiệu hệ thống làm rối mắt người đọc.\n3. Nội dung: Đi thẳng vào trọng tâm câu hỏi của bà con. Tránh dùng thuật ngữ kỹ thuật phức tạp. Đưa ra lời khuyên thực tế và dễ áp dụng. Nếu không chắc chắn về một loại bệnh lý phức tạp, hãy khuyên bà con hỏi thêm ý kiến kỹ sư nông nghiệp.\n\nDưới đây là câu hỏi của bà con:\n\"{{ $json.Chat }}\"\n\nHãy đưa ra câu trả lời hữu ích nhất của bạn ngay bây giờ:",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3296,
+        1824
+      ],
+      "id": "84cb40d2-b39c-47c8-b46f-96cd1e3237c2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3296,
+        2016
+      ],
+      "id": "f2624f26-b203-4781-a848-1e5b274037e6",
+      "name": "Groq Chat Model7",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID",
+          "mode": "list",
+          "cachedResultName": "chat_memory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "text_id",
+              "lookupValue": "={{ $json.text_id }}"
+            },
+            {
+              "lookupColumn": "chat_id",
+              "lookupValue": "={{ $json.chat_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2720,
+        1824
+      ],
+      "id": "be9a30e7-b919-4070-94a0-72825c08ceef",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID",
+          "mode": "list",
+          "cachedResultName": "chat_memory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CHAT_HISTORY_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "text_id": "={{ $('Code in JavaScript').item.json.text_id }}",
+            "chat_id": "={{ $('Code in JavaScript').item.json.ChatID }}",
+            "text": "={{ $('Code in JavaScript').item.json.Chat }}",
+            "reply": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "text_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "text_id",
+              "displayName": "text_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply",
+              "displayName": "reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2944,
+        1824
+      ],
+      "id": "8503634e-b32c-4256-a7a8-fbc225dc1de3",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.reply }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2496,
+        1824
+      ],
+      "id": "39cd3ef4-187d-4953-839c-9ec17a87beb0",
+      "name": "/chat1",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Chào bà con! Chào mừng bà con đến với TOMATOAI - Trợ lý nông nghiệp thông minh của nhà nông! 🍅🚜\n\nTOMATOAI ở đây để đồng hành cùng bà con trong mọi công đoạn canh tác: từ chọn giống, bón phân, tưới nước, đến trị các loại sâu bệnh khó nhằn.\n\nĐể TOMATOAI làm \"quân sư\" tư vấn chính xác nhất, \"đo ni đóng giày\" cho đúng mảnh vườn nhà mình, bà con hãy copy tin nhắn ngay bên dưới, điền thông tin và gửi lại cho TOMATOAI nhé! 👇",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3776,
+        2384
+      ],
+      "id": "866ffd81-8ca7-4512-8ee7-ca6c73b12f28",
+      "name": "/config",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Config Context\n",
+        "height": 384,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        1328
+      ],
+      "typeVersion": 1,
+      "id": "80216eed-b730-4a4b-bf46-69cda9a33809",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Lấy nội dung tin nhắn người dùng vừa gõ trả lời\nconst text = $json.message?.text || \"\";\nconst chat_id = $json.message?.chat?.id;\n\n\n\n// 2. Tạo text_id tự động (Ví dụ: \"id_1715832000_a1b2\")\nconst config_id = `id_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;\n\nreturn { \n    IsValid: true,\n    ChatID: chat_id,\n    Chat: text,\n    config_id: config_id // Cột mới được thêm ở đây\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3952,
+        1456
+      ],
+      "id": "cbaab42e-a866-4f2f-a08e-164ad105598b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.ChatID }}",
+            "config_id": "={{ $json.config_id }}",
+            "config": "={{ $json.Chat }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "config_id",
+              "displayName": "config_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "config",
+              "displayName": "config",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3728,
+        1456
+      ],
+      "id": "63b73c5f-acd3-48bb-8941-af08c480cba6",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Dạ, TOMATOAI đã nhận được thông tin vườn tược của bà con rồi ạ! 🍅✨\n\nHệ thống đã ghi nhớ cẩn thận các thông tin canh tác dưới đây để từ nay tư vấn cho nhà mình thật chuẩn xác:\n\n📝 Thông tin nhà vườn đã cung cấp:\n{{ $json.config }}\nCảm ơn bà con đã tin tưởng chia sẻ! Bắt đầu từ bây giờ, mọi lời khuyên về cách ươm giống, chăm bón, phòng ngừa sâu bệnh hay tưới tiêu đều sẽ được \"đo ni đóng giày\" riêng cho mảnh vườn của nhà mình.\n\n🌻 TOMATOAI thương chúc bà con một vụ mùa mưa thuận gió hòa, cây cối xanh tốt, ít sâu bệnh, năng suất vượt trội và trúng mùa được giá nhé! 💰🚜\n\nBà con có đang gặp khó khăn gì hay cần hỏi thêm về kỹ thuật chăm sóc cây hôm nay không ạ? Cứ nhắn tin cho TOMATOAI ngay nhé! 🌱💬",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3472,
+        1456
+      ],
+      "id": "81f15522-5f44-4107-9136-6eb40db2127c",
+      "name": "/chat2",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=`📍 Địa điểm trồng: [Ghi rõ Huyện/Tỉnh, ví dụ: An Nhơn, Bình Định]\n🌱 Loại đất canh tác: [Đất sét, đất cát, đất thịt...]\n📐 Diện tích: [Bao nhiêu mét vuông, sào...]\n💧 Nguồn nước tưới: [Nước giếng khoan, ao hồ...]\n💰 Ngân sách dự kiến: [Chi phí đầu tư cho 1 vụ/1 năm]\n🎯 Mục tiêu: [Năng suất mong muốn, trồng hữu cơ/VietGAP...]\n🍅 Hiện trạng: [Đang trồng giống gì, giai đoạn nào, có nấm bệnh không...]`\n",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3552,
+        2384
+      ],
+      "id": "1dfbe892-3497-4e6b-a215-80ed14f72a97",
+      "name": "/config1",
+      "webhookId": "c5c46361-6d76-4631-9f00-9fa35999a2d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3744,
+        1824
+      ],
+      "id": "33943e98-7207-4b52-b999-84fcff9d11a0",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2816,
+        3088
+      ],
+      "id": "2b7a4791-adfe-4477-a6b1-9caf6928b14e",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3968,
+        4752
+      ],
+      "id": "169c3944-b499-47a6-8412-d78719d1f3ca",
+      "name": "Get row(s) in sheet4",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lấy dữ liệu từ node HTTP Request (nằm ngay trước node Code)\nconst httpData = $input.first().json;\n\n// Lấy dữ liệu từ node Google Sheet (nằm trước đó nữa)\nconst sheetData = $('Get row(s) in sheet4').first().json;\n\nconst text_id = `id_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;\n\nreturn { \n    IsValid: true,\n    ChatID: sheetData.chat_id || sheetData.ChatID || $('Telegram Trigger').first().json.message.chat.id,\n    Chat: sheetData.Chat || sheetData.text || \"\",\n    text_id: text_id, \n    config: sheetData.config,\n    \n    date: httpData.date,\n    product: httpData.product,\n    price_vnd: httpData.price_vnd,\n    percent_change: httpData.percent_change,\n    is_alert: httpData.is_alert,\n    source: httpData.source,\n    status: httpData.status\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3520,
+        4752
+      ],
+      "id": "e758ab8c-2727-45ad-892e-61cee0cb2f55",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lấy dữ liệu từ node HTTP Request (nằm ngay trước node Code)\nconst httpData = $('HTTP Request4').first().json;\n\n// Lấy dữ liệu từ node Google Sheet (nằm trước đó nữa)\nconst sheetData = $('Get row(s) in sheet3').first().json;\n\n\nreturn { \n    IsValid: true,\n    ChatID: sheetData.chat_id || sheetData.ChatID || $('Telegram Trigger').first().json.message.chat.id,\n    config: sheetData.config,\n    prediction: httpData.prediction,\n    confidence: httpData.confidence \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2592,
+        3088
+      ],
+      "id": "1e8a96a9-358e-4863-bb86-dc20308cb89e",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_CONFIG_ID",
+          "mode": "list",
+          "cachedResultName": "Bot_Memory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CONFIG_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_CONFIG_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Chat_ID": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+            "Trang_Thai": "="
+          },
+          "matchingColumns": [
+            "Chat_ID"
+          ],
+          "schema": [
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Trang_Thai",
+              "displayName": "Trang_Thai",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1776,
+        3376
+      ],
+      "id": "ea0b0f12-948d-40a0-b842-a828ebe61f1e",
+      "name": "Append or update row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Nhận diện giọng nói\n",
+        "height": 448,
+        "width": 2496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4048,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "279f4503-51a3-4cf6-b6ff-ae108f4c4e7e",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3968,
+        576
+      ],
+      "id": "ff45c534-a2df-429b-992b-3d0a91514596",
+      "name": "Get a file1",
+      "webhookId": "8e6bcf7b-0f11-4350-94f8-1acae53943ce",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/botYOUR_TELEGRAM_BOT_TOKEN/{{ $json.result.file_path }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3760,
+        576
+      ],
+      "id": "6d46c1d7-9b3e-4495-9cee-67d64dd7fc67",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "name": "language",
+              "value": "vi"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3312,
+        576
+      ],
+      "id": "5292657e-cb48-45ec-95a1-d0e72daba6c4",
+      "name": "HTTP Request2",
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // Kiểm tra xem có dữ liệu binary tên là 'data' không\n  if (item.binary && item.binary.data) {\n    // Đổi thông tin file sang chuẩn ogg để Groq chấp nhận\n    item.binary.data.fileName = 'voice.ogg';\n    item.binary.data.mimeType = 'audio/ogg';\n    item.binary.data.fileExtension = 'ogg';\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3552,
+        576
+      ],
+      "id": "9e445201-c780-4730-8c0b-ea1afd709614",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là TOMATOAI, một trợ lý AI thông minh, nhiệt tình và gần gũi dành riêng cho bà con nông dân. Nhiệm vụ của bạn là hỗ trợ giải đáp các thắc mắc về nông nghiệp, chăm sóc cây trồng, sâu bệnh và kỹ thuật canh tác.\n\nKhi trả lời, bạn phải tuân thủ nghiêm ngặt các nguyên tắc sau:\n0. Đọc, lưu context của người dùng và phải trả lời phù hợp với context đó. Với context như sau\n{{ $json.config }}\n1. Xưng hô & Giọng điệu: Tự xưng là \"TOMATOAI\" và gọi người dùng là \"bà con\". Giọng điệu chân thành, tôn trọng, động viên và dễ hiểu.\n2. Định dạng văn bản: \n   - Trình bày câu trả lời rõ ràng, chia thành các đoạn hoặc ý ngắn gọn.\n   - Sử dụng các biểu tượng cảm xúc (emoji) phù hợp ngữ cảnh (như 🌱, 🍅, 💧, ☀️, 🚜) để đoạn chat sinh động và thân thiện.\n   - TUYỆT ĐỐI KHÔNG sử dụng các ký tự thừa, mã code rườm rà, hay các ký hiệu hệ thống làm rối mắt người đọc.\n   - Không dùng ký tự ###\n3. Nội dung: Đi thẳng vào trọng tâm câu hỏi của bà con. Tránh dùng thuật ngữ kỹ thuật phức tạp. Đưa ra lời khuyên thực tế và dễ áp dụng. Nếu không chắc chắn về một loại bệnh lý phức tạp, hãy khuyên bà con hỏi thêm ý kiến kỹ sư nông nghiệp.\n4. Lưu ý, đây là đoạn text được dịch từ giọng nói của người dùng, nếu không rõ có thể hỏi lại nông dân\n\nDưới đây là câu hỏi của bà con:\n\"{{ $('HTTP Request2').item.json.text }}\"\"\n\nHãy đưa ra câu trả lời hữu ích nhất của bạn ngay bây giờ:",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2800,
+        576
+      ],
+      "id": "e8ae509c-ccf3-42ae-839b-e0a09f7e4465",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2784,
+        752
+      ],
+      "id": "1bc93a48-b13f-4034-90da-3c54a333c20f",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3056,
+        576
+      ],
+      "id": "96eede7d-ba54-4998-ad29-ffa96c421ece",
+      "name": "Get row(s) in sheet5",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2464,
+        576
+      ],
+      "id": "9ceed0bc-ebca-4282-82c3-0494712ae07e",
+      "name": "/voice",
+      "webhookId": "43ad1fe5-9f05-4735-858c-0b1bb99cf0d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Bạn là \"Trợ lý Nông nghiệp Thông minh\", một chuyên gia tận tâm, dạn dày kinh nghiệm thực tế về canh tác và bao tiêu cà chua.\nNhiệm vụ của bạn là tổng hợp các số liệu kỹ thuật, sau đó đưa ra lời khuyên thu hoạch tối ưu nhất để giúp bà con nông dân đạt lợi nhuận cao nhất và tránh rủi ro.\n\nDỮ LIỆU TỪ KHU VƯỜN HIỆN TẠI:\n\nKết quả nhận diện độ chín từ ảnh chụp: {{ $('Code in JavaScript6').item.json.responseText }}\n\nBối cảnh vườn & Dự báo thời tiết: {{ $json.config }}\n\nBiến động giá thị trường hôm nay: dựa trên bối cảnh để bạn lấy giá cho phù hợp\n\nHƯỚNG DẪN XỬ LÝ (BẮT BUỘC TUÂN THỦ):\n\nGiọng điệu: Xưng \"tôi\" hoặc \"con\", gọi người dùng là \"bác/chú/anh/chị\". Dùng từ ngữ dân dã, chân chất, gần gũi.\n\nCấm kỵ: Tuyệt đối không dùng các từ ngữ kỹ thuật phức tạp (như JSON, bounding box, thuật toán nhận diện, model, API). Nông dân chỉ quan tâm đến kết quả.\n\nTư duy ra quyết định:\n\nRủi ro thời tiết: Nếu cấu hình thời tiết báo sắp mưa to/bão, và ảnh chụp cho thấy cà chua đã chín hường/chín đỏ (tỉ lệ cao), phải giục thu hoạch ngay để tránh nứt quả, úng rụng.\n\nTối ưu giá cả: Nếu trời nắng ráo, quả còn xanh nhiều và giá đang thấp, khuyên neo lại trên cây vài ngày đợi giá lên.\n\nHành động: Luôn phải chốt lại bằng một lời khuyên dứt khoát: Thu hoạch ngay hôm nay hay chờ tiếp?\n\nCẤU TRÚC TRẢ LỜI:\n\nChào hỏi & Tóm tắt nhanh tình trạng vườn theo ảnh chụp (ví dụ: \"Cháu thấy vườn nhà mình quả đã chín đỏ khoảng 80% rồi...\").\n\nĐưa ra phân tích kết hợp giữa Thời tiết và Giá cả.\n\nChốt phương án thu hoạch sinh lời nhất và hỏi xem họ có muốn ghi sổ/tạo mã QR xuất kho luôn không.\n\nCó thể thêm icon cho dễ nhìn\n\nTuyệt đối chỉ cho người dùng dùng lệnh sau /export để tạo mã qr xuất kho, ngoài ra không được gợi ý gì hết",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2400,
+        3536
+      ],
+      "id": "6f9812c5-e10e-45de-86b8-e4355b7b9bf6",
+      "name": "Environmental AI analyst2"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        3696
+      ],
+      "id": "b1b04d93-b3e6-46e3-a6f2-712d4daf47a7",
+      "name": "Groq Chat Model6",
+      "alwaysOutputData": false,
+      "credentials": {
+        "groqApi": {
+          "id": "groq_account_id",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_USER_PROFILE_ID",
+          "mode": "list",
+          "cachedResultName": "config_context",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_USER_PROFILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2624,
+        3536
+      ],
+      "id": "1a604aec-c87c-4567-8107-e5f2838629c8",
+      "name": "Get row(s) in sheet6",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2032,
+        3536
+      ],
+      "id": "3b174f89-7e9e-4bf8-bf7d-517244b87d56",
+      "name": "/ripeness1",
+      "webhookId": "ad130dfe-de6b-4f08-90b2-612ed9d0c512",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_account_id",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lấy dữ liệu từ node HTTP Request (nằm ngay trước node Code)\nconst sheet = $('Get row(s) in sheet').first().json;\nconst Chat = $('Code in JavaScript').first().json.Chat;\n\n\n// 2. Tạo text_id tự động (Ví dụ: \"id_1715832000_a1b2\")\nconst text_id = `id_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;\n\nreturn { \n    IsValid: true,\n    ChatID: $('Telegram Trigger').first().json.message.chat.id,\n    Chat: Chat,\n    text_id: text_id, // Cột mới được thêm ở đây\n    config: sheet.config\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3520,
+        1824
+      ],
+      "id": "ad0c6935-76a1-4576-9b0a-6b52ee5a0ac5",
+      "name": "Code in JavaScript3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Environmental AI agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pre-processing data": {
+      "main": [
+        [
+          {
+            "node": "Save data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save data": {
+      "main": [
+        [
+          {
+            "node": "Environmental AI agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Environmental AI agent": {
+      "main": [
+        [
+          {
+            "node": "Parse result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check condition": {
+      "main": [
+        [
+          {
+            "node": "Send Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse result": {
+      "main": [
+        [
+          {
+            "node": "Check condition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MQTT Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pre-processing data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Get a file1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "/start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "/about",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read data1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "/ripeness /disease",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Downloadfile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Downloadfile": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Environmental AI analyst1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read data1": {
+      "main": [
+        [
+          {
+            "node": "Data Aggregation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Environmental AI analyst1": {
+      "main": [
+        [
+          {
+            "node": "Parse output1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse output1": {
+      "main": [
+        [
+          {
+            "node": "Send Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch4": {
+      "main": [
+        [
+          {
+            "node": "/export1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "/config",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Environmental AI agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Environmental AI agent4": {
+      "main": [
+        [
+          {
+            "node": "/price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "/export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "/news",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request9",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "/ripeness",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Environmental AI analyst": {
+      "main": [
+        [
+          {
+            "node": "/disease",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Environmental AI analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/ripeness /disease": {
+      "main": [
+        []
+      ]
+    },
+    "Data Aggregation1": {
+      "main": [
+        [
+          {
+            "node": "Environmental AI analyst1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/export1": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "/chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/export": {
+      "main": [
+        []
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "/export3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "/chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "/chat2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/config": {
+      "main": [
+        [
+          {
+            "node": "/config1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Environmental AI agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Environmental AI analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/disease": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/ripeness": {
+      "main": [
+        []
+      ]
+    },
+    "Get a file1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet5": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "/voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Environmental AI analyst2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet6": {
+      "main": [
+        [
+          {
+            "node": "Environmental AI analyst2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Environmental AI analyst2": {
+      "main": [
+        [
+          {
+            "node": "/ripeness1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/ripeness1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "bda99655-3683-45c6-93fc-3ab10546424b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9217377827461be19d371b6beb92561a2c5937780e14804982015afbcb78d113"
+  },
+  "id": "n6QVsu0R3DscKJaD",
+  "tags": []
+}
